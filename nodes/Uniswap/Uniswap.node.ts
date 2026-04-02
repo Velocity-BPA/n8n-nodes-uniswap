@@ -70,6 +70,7 @@ export class Uniswap implements INodeType {
           { name: 'Swap', value: 'swap' },
           { name: 'Quote', value: 'quote' },
           { name: 'Route', value: 'route' },
+          { name: 'Pool', value: 'pool' },
           { name: 'Pool (V3)', value: 'poolV3' },
           { name: 'Pool (V2)', value: 'poolV2' },
           { name: 'Position', value: 'position' },
@@ -89,6 +90,9 @@ export class Uniswap implements INodeType {
           { name: 'Subgraph', value: 'subgraph' },
           { name: 'Multicall', value: 'multicall' },
           { name: 'Utility', value: 'utility' },
+          { name: 'Mint', value: 'mint' },
+          { name: 'Burn', value: 'burn' },
+          { name: 'Tick', value: 'tick' },
         ],
         default: 'swap',
       },
@@ -98,6 +102,45 @@ export class Uniswap implements INodeType {
       ...quote.description,
       // Route operations
       ...route.description,
+      // Pool operations (newly generated)
+      {
+        displayName: 'Operation',
+        name: 'operation',
+        type: 'options',
+        noDataExpression: true,
+        displayOptions: {
+          show: {
+            resource: ['pool'],
+          },
+        },
+        options: [
+          {
+            name: 'Get Pool',
+            value: 'getPool',
+            description: 'Get specific pool information by ID',
+            action: 'Get pool information',
+          },
+          {
+            name: 'Get All Pools',
+            value: 'getAllPools',
+            description: 'Get all pools with filtering options',
+            action: 'Get all pools',
+          },
+          {
+            name: 'Get Pool Day Data',
+            value: 'getPoolDayData',
+            description: 'Get historical daily data for pools',
+            action: 'Get pool day data',
+          },
+          {
+            name: 'Get Pool Hour Data',
+            value: 'getPoolHourData',
+            description: 'Get hourly pool statistics',
+            action: 'Get pool hour data',
+          },
+        ],
+        default: 'getPool',
+      },
       // Pool V3 operations
       ...poolV3.description,
       // Pool V2 operations
@@ -136,6 +179,136 @@ export class Uniswap implements INodeType {
       ...multicall.description,
       // Utility operations
       ...utility.description,
+      // Generated operations for new resources
+      {
+        displayName: 'Operation',
+        name: 'operation',
+        type: 'options',
+        noDataExpression: true,
+        displayOptions: { show: { resource: ['position'] } },
+        options: [
+          { name: 'Get Position', value: 'getPosition', description: 'Get specific position details', action: 'Get position details' },
+          { name: 'Get All Positions', value: 'getAllPositions', description: 'Get positions with filtering by owner or pool', action: 'Get all positions' },
+          { name: 'Get Position Snapshots', value: 'getPositionSnapshots', description: 'Get historical position snapshots', action: 'Get position snapshots' }
+        ],
+        default: 'getPosition',
+      },
+      {
+        displayName: 'Operation',
+        name: 'operation',
+        type: 'options',
+        noDataExpression: true,
+        displayOptions: { show: { resource: ['mint'] } },
+        options: [
+          { name: 'Get Mint', value: 'getMint', description: 'Get specific mint transaction details', action: 'Get mint transaction' },
+          { name: 'Get All Mints', value: 'getAllMints', description: 'Get mint transactions with filtering', action: 'Get all mint transactions' },
+          { name: 'Get Mints By Pool', value: 'getMintsByPool', description: 'Get mint events for specific pool', action: 'Get mints by pool' },
+          { name: 'Get Mints By Owner', value: 'getMintsByOwner', description: 'Get mints by liquidity provider', action: 'Get mints by owner' },
+        ],
+        default: 'getMint',
+      },
+      {
+        displayName: 'Operation',
+        name: 'operation',
+        type: 'options',
+        noDataExpression: true,
+        displayOptions: { show: { resource: ['burn'] } },
+        options: [
+          { name: 'Get Burn', value: 'getBurn', description: 'Get specific burn transaction details', action: 'Get burn transaction' },
+          { name: 'Get All Burns', value: 'getAllBurns', description: 'Get burn transactions with filtering', action: 'Get all burn transactions' },
+          { name: 'Get Burns by Pool', value: 'getBurnsByPool', description: 'Get burn events for specific pool', action: 'Get burns by pool' },
+          { name: 'Get Burns by Owner', value: 'getBurnsByOwner', description: 'Get burns by liquidity provider', action: 'Get burns by owner' }
+        ],
+        default: 'getBurn',
+      },
+      {
+        displayName: 'Operation',
+        name: 'operation',
+        type: 'options',
+        noDataExpression: true,
+        displayOptions: { show: { resource: ['tick'] } },
+        options: [
+          { name: 'Get Tick', value: 'getTick', description: 'Get specific tick information', action: 'Get specific tick information' },
+          { name: 'Get All Ticks', value: 'getAllTicks', description: 'Get ticks for a pool with filtering', action: 'Get all ticks for a pool' },
+          { name: 'Get Tick Day Data', value: 'getTickDayData', description: 'Get historical tick data', action: 'Get historical tick data' },
+        ],
+        default: 'getTick',
+      },
+      // Parameters for new resources
+      {
+        displayName: 'Pool ID',
+        name: 'poolId',
+        type: 'string',
+        required: true,
+        displayOptions: {
+          show: {
+            resource: ['pool'],
+            operation: ['getPool'],
+          },
+        },
+        default: '',
+        description: 'The ID of the pool to retrieve information for',
+      },
+      {
+        displayName: 'First',
+        name: 'first',
+        type: 'number',
+        displayOptions: {
+          show: {
+            resource: ['pool'],
+            operation: ['getAllPools'],
+          },
+        },
+        default: 10,
+        description: 'Number of pools to return',
+      },
+      {
+        displayName: 'Skip',
+        name: 'skip',
+        type: 'number',
+        displayOptions: {
+          show: {
+            resource: ['pool'],
+            operation: ['getAllPools'],
+          },
+        },
+        default: 0,
+        description: 'Number of pools to skip',
+      },
+      {
+        displayName: 'Where Clause',
+        name: 'where',
+        type: 'string',
+        displayOptions: {
+          show: {
+            resource: ['pool'],
+            operation: ['getAllPools'],
+          },
+        },
+        default: '',
+        description: 'GraphQL where clause for filtering pools (optional)',
+        placeholder: '{ volumeUSD_gt: "1000" }',
+      },
+      {
+        displayName: 'Order By',
+        name: 'orderBy',
+        type: 'options',
+        displayOptions: {
+          show: {
+            resource: ['pool'],
+            operation: ['getAllPools'],
+          },
+        },
+        options: [
+          { name: 'Created At', value: 'createdAtTimestamp' },
+          { name: 'Total Value Locked USD', value: 'totalValueLockedUSD' },
+          { name: 'Volume USD', value: 'volumeUSD' },
+          { name: 'Fee Growth Global0X128', value: 'feeGrowthGlobal0X128' },
+          { name: 'Fee Growth Global1X128', value: 'feeGrowthGlobal1X128' },
+        ],
+        default: 'totalValueLockedUSD',
+        description: 'Field to order pools by',
+      },
     ],
   };
 
@@ -158,6 +331,9 @@ export class Uniswap implements INodeType {
             break;
           case 'route':
             result = await route.execute.call(this, i, operation);
+            break;
+          case 'pool':
+            result = await executePoolOperations.call(this, items);
             break;
           case 'poolV3':
             result = await poolV3.execute.call(this, i, operation);
@@ -216,6 +392,15 @@ export class Uniswap implements INodeType {
           case 'utility':
             result = await utility.execute.call(this, i, operation);
             break;
+          case 'mint':
+            result = await executeMintOperations.call(this, items);
+            break;
+          case 'burn':
+            result = await executeBurnOperations.call(this, items);
+            break;
+          case 'tick':
+            result = await executeTickOperations.call(this, items);
+            break;
           default:
             throw new NodeOperationError(
               this.getNode(),
@@ -225,7 +410,7 @@ export class Uniswap implements INodeType {
         }
 
         returnData.push(...result);
-      } catch (error) {
+      } catch (error: any) {
         if (this.continueOnFail()) {
           returnData.push({
             json: {
@@ -241,4 +426,559 @@ export class Uniswap implements INodeType {
 
     return [returnData];
   }
+}
+
+// ============================================================
+// Resource Handler Functions (from generated code)
+// ============================================================
+
+async function executePoolOperations(
+  this: IExecuteFunctions,
+  items: INodeExecutionData[],
+): Promise<INodeExecutionData[]> {
+  const returnData: INodeExecutionData[] = [];
+  const operation = this.getNodeParameter('operation', 0) as string;
+  const credentials = await this.getCredentials('uniswapApi') as any;
+
+  for (let i = 0; i < items.length; i++) {
+    try {
+      let result: any;
+
+      switch (operation) {
+        case 'getPool': {
+          const poolId = this.getNodeParameter('poolId', i) as string;
+          const query = `
+            query GetPool($id: ID!) {
+              pool(id: $id) {
+                id
+                token0 {
+                  id
+                  symbol
+                  name
+                  decimals
+                }
+                token1 {
+                  id
+                  symbol
+                  name
+                  decimals
+                }
+                feeTier
+                liquidity
+                sqrtPrice
+                tick
+                observationIndex
+                volumeToken0
+                volumeToken1
+                volumeUSD
+                untrackedVolumeUSD
+                txCount
+                collectedFeesToken0
+                collectedFeesToken1
+                collectedFeesUSD
+                totalValueLockedToken0
+                totalValueLockedToken1
+                totalValueLockedETH
+                totalValueLockedUSD
+                totalValueLockedUSDUntracked
+                createdAtTimestamp
+                createdAtBlockNumber
+                feeGrowthGlobal0X128
+                feeGrowthGlobal1X128
+              }
+            }
+          `;
+          const options: any = {
+            method: 'POST',
+            url: credentials.baseUrl || 'https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v3',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              query,
+              variables: { id: poolId },
+            }),
+            json: true,
+          };
+          result = await this.helpers.httpRequest(options) as any;
+          result = result.data?.pool || result;
+          break;
+        }
+
+        case 'getAllPools': {
+          const first = this.getNodeParameter('first', i, 10) as number;
+          const skip = this.getNodeParameter('skip', i, 0) as number;
+          const where = this.getNodeParameter('where', i, '') as string;
+          const orderBy = this.getNodeParameter('orderBy', i, 'totalValueLockedUSD') as string;
+
+          let whereClause = '';
+          if (where) {
+            whereClause = `, where: ${where}`;
+          }
+
+          const query = `
+            query GetAllPools($first: Int!, $skip: Int!, $orderBy: String!) {
+              pools(first: $first, skip: $skip, orderBy: $orderBy, orderDirection: desc${whereClause}) {
+                id
+                token0 {
+                  id
+                  symbol
+                  name
+                  decimals
+                }
+                token1 {
+                  id
+                  symbol
+                  name
+                  decimals
+                }
+                feeTier
+                liquidity
+                sqrtPrice
+                tick
+                volumeToken0
+                volumeToken1
+                volumeUSD
+                txCount
+                totalValueLockedToken0
+                totalValueLockedToken1
+                totalValueLockedUSD
+                createdAtTimestamp
+              }
+            }
+          `;
+          const options: any = {
+            method: 'POST',
+            url: credentials.baseUrl || 'https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v3',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              query: query.replace('${whereClause}', whereClause),
+              variables: { first, skip, orderBy },
+            }),
+            json: true,
+          };
+          result = await this.helpers.httpRequest(options) as any;
+          result = result.data?.pools || result;
+          break;
+        }
+
+        case 'getPoolDayData': {
+          const poolId = this.getNodeParameter('poolId', i) as string;
+          const date = this.getNodeParameter('date', i, '') as string;
+
+          let whereClause = `{ pool: "${poolId}" }`;
+          if (date) {
+            const timestamp = Math.floor(new Date(date).getTime() / 1000);
+            whereClause = `{ pool: "${poolId}", date: ${timestamp} }`;
+          }
+
+          const query = `
+            query GetPoolDayData($where: PoolDayData_filter!) {
+              poolDayDatas(where: $where, orderBy: date, orderDirection: desc, first: 100) {
+                id
+                date
+                pool {
+                  id
+                  token0 {
+                    symbol
+                  }
+                  token1 {
+                    symbol
+                  }
+                }
+                liquidity
+                sqrtPrice
+                tick
+                volumeToken0
+                volumeToken1
+                volumeUSD
+                txCount
+                open
+                high
+                low
+                close
+                feeGrowthGlobal0X128
+                feeGrowthGlobal1X128
+                tvlUSD
+              }
+            }
+          `;
+          const options: any = {
+            method: 'POST',
+            url: credentials.baseUrl || 'https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v3',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              query,
+              variables: { where: JSON.parse(whereClause) },
+            }),
+            json: true,
+          };
+          result = await this.helpers.httpRequest(options) as any;
+          result = result.data?.poolDayDatas || result;
+          break;
+        }
+
+        case 'getPoolHourData': {
+          const poolId = this.getNodeParameter('poolId', i) as string;
+          const timestamp = this.getNodeParameter('timestamp', i, 0) as number;
+
+          let whereClause = `{ pool: "${poolId}" }`;
+          if (timestamp > 0) {
+            whereClause = `{ pool: "${poolId}", periodStartUnix: ${timestamp} }`;
+          }
+
+          const query = `
+            query GetPoolHourData($where: PoolHourData_filter!) {
+              poolHourDatas(where: $where, orderBy: periodStartUnix, orderDirection: desc, first: 100) {
+                id
+                periodStartUnix
+                pool {
+                  id
+                  token0 {
+                    symbol
+                  }
+                  token1 {
+                    symbol
+                  }
+                }
+                liquidity
+                sqrtPrice
+                tick
+                volumeToken0
+                volumeToken1
+                volumeUSD
+                txCount
+                open
+                high
+                low
+                close
+                feeGrowthGlobal0X128
+                feeGrowthGlobal1X128
+                tvlUSD
+              }
+            }
+          `;
+          const options: any = {
+            method: 'POST',
+            url: credentials.baseUrl || 'https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v3',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              query,
+              variables: { where: JSON.parse(whereClause) },
+            }),
+            json: true,
+          };
+          result = await this.helpers.httpRequest(options) as any;
+          result = result.data?.poolHourDatas || result;
+          break;
+        }
+
+        default:
+          throw new NodeOperationError(
+            this.getNode(),
+            `Unknown operation: ${operation}`,
+            { itemIndex: i },
+          );
+      }
+
+      returnData.push({
+        json: result,
+        pairedItem: { item: i },
+      });
+    } catch (error: any) {
+      if (this.continueOnFail()) {
+        returnData.push({
+          json: { error: error.message },
+          pairedItem: { item: i },
+        });
+      } else {
+        throw error;
+      }
+    }
+  }
+
+  return returnData;
+}
+
+async function executeMintOperations(
+  this: IExecuteFunctions,
+  items: INodeExecutionData[],
+): Promise<INodeExecutionData[]> {
+  const returnData: INodeExecutionData[] = [];
+  const operation = this.getNodeParameter('operation', 0) as string;
+  const credentials = await this.getCredentials('uniswapApi') as any;
+
+  for (let i = 0; i < items.length; i++) {
+    try {
+      let result: any;
+
+      switch (operation) {
+        case 'getMint': {
+          const mintId = this.getNodeParameter('mintId', i) as string;
+          const query = `
+            query GetMint($mintId: ID!) {
+              mint(id: $mintId) {
+                id
+                transaction {
+                  id
+                  blockNumber
+                  timestamp
+                }
+                pool {
+                  id
+                  token0 {
+                    id
+                    symbol
+                    name
+                  }
+                  token1 {
+                    id
+                    symbol
+                    name
+                  }
+                }
+                owner
+                sender
+                origin
+                amount
+                amount0
+                amount1
+                amountUSD
+                tickLower
+                tickUpper
+                logIndex
+              }
+            }
+          `;
+          const options: any = {
+            method: 'POST',
+            url: credentials.baseUrl || 'https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v3',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              query,
+              variables: { mintId },
+            }),
+            json: true,
+          };
+          result = await this.helpers.httpRequest(options) as any;
+          break;
+        }
+
+        default:
+          throw new NodeOperationError(this.getNode(), `Unknown operation: ${operation}`);
+      }
+
+      if (result.errors) {
+        throw new NodeOperationError(this.getNode(), `GraphQL Error: ${JSON.stringify(result.errors)}`);
+      }
+
+      returnData.push({ json: result.data, pairedItem: { item: i } });
+    } catch (error: any) {
+      if (this.continueOnFail()) {
+        returnData.push({ json: { error: error.message }, pairedItem: { item: i } });
+      } else {
+        throw error;
+      }
+    }
+  }
+
+  return returnData;
+}
+
+async function executeBurnOperations(
+  this: IExecuteFunctions,
+  items: INodeExecutionData[],
+): Promise<INodeExecutionData[]> {
+  const returnData: INodeExecutionData[] = [];
+  const operation = this.getNodeParameter('operation', 0) as string;
+  const credentials = await this.getCredentials('uniswapApi') as any;
+
+  for (let i = 0; i < items.length; i++) {
+    try {
+      let result: any;
+      let query: string = '';
+
+      switch (operation) {
+        case 'getBurn': {
+          const burnId = this.getNodeParameter('burnId', i) as string;
+          query = `
+            query {
+              burn(id: "${burnId}") {
+                id
+                transaction {
+                  id
+                  timestamp
+                  blockNumber
+                }
+                pool {
+                  id
+                  token0 {
+                    id
+                    symbol
+                    name
+                  }
+                  token1 {
+                    id
+                    symbol
+                    name
+                  }
+                }
+                owner
+                origin
+                amount
+                amount0
+                amount1
+                amountUSD
+                tickLower
+                tickUpper
+                logIndex
+              }
+            }
+          `;
+          break;
+        }
+
+        default:
+          throw new NodeOperationError(this.getNode(), 'Unknown operation: ' + operation);
+      }
+
+      const options: any = {
+        method: 'POST',
+        url: credentials.baseUrl || 'https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v3',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: {
+          query: query,
+        },
+        json: true,
+      };
+
+      if (credentials.apiKey) {
+        options.headers['Authorization'] = `Bearer ${credentials.apiKey}`;
+      }
+
+      result = await this.helpers.httpRequest(options) as any;
+
+      if (result.errors) {
+        throw new NodeOperationError(this.getNode(), `GraphQL Error: ${JSON.stringify(result.errors)}`);
+      }
+
+      returnData.push({ json: result.data, pairedItem: { item: i } });
+    } catch (error: any) {
+      if (this.continueOnFail()) {
+        returnData.push({ json: { error: error.message }, pairedItem: { item: i } });
+      } else {
+        throw error;
+      }
+    }
+  }
+
+  return returnData;
+}
+
+async function executeTickOperations(
+  this: IExecuteFunctions,
+  items: INodeExecutionData[],
+): Promise<INodeExecutionData[]> {
+  const returnData: INodeExecutionData[] = [];
+  const operation = this.getNodeParameter('operation', 0) as string;
+  const credentials = await this.getCredentials('uniswapApi') as any;
+
+  for (let i = 0; i < items.length; i++) {
+    try {
+      let result: any;
+
+      switch (operation) {
+        case 'getTick': {
+          const poolAddress = this.getNodeParameter('poolAddress', i) as string;
+          const tickIdx = this.getNodeParameter('tickIdx', i) as number;
+
+          const query = `
+            query {
+              ticks(where: { pool: "${poolAddress.toLowerCase()}", tickIdx: "${tickIdx}" }) {
+                id
+                tickIdx
+                pool {
+                  id
+                  token0 {
+                    symbol
+                    decimals
+                  }
+                  token1 {
+                    symbol
+                    decimals
+                  }
+                }
+                liquidityGross
+                liquidityNet
+                price0
+                price1
+                volumeToken0
+                volumeToken1
+                volumeUSD
+                untrackedVolumeUSD
+                feesUSD
+                collectedFeesToken0
+                collectedFeesToken1
+                collectedFeesUSD
+                createdAtTimestamp
+                createdAtBlockNumber
+                liquidityProviderCount
+                feeGrowthOutside0X128
+                feeGrowthOutside1X128
+              }
+            }
+          `;
+
+          const options: any = {
+            method: 'POST',
+            url: credentials.baseUrl || 'https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v3',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: {
+              query: query,
+            },
+            json: true,
+          };
+
+          result = await this.helpers.httpRequest(options) as any;
+          break;
+        }
+
+        default:
+          throw new NodeOperationError(this.getNode(), `Unknown operation: ${operation}`);
+      }
+
+      if (result.errors) {
+        throw new NodeOperationError(this.getNode(), `GraphQL error: ${JSON.stringify(result.errors)}`);
+      }
+
+      returnData.push({
+        json: result.data,
+        pairedItem: { item: i },
+      });
+
+    } catch (error: any) {
+      if (this.continueOnFail()) {
+        returnData.push({
+          json: { error: error.message },
+          pairedItem: { item: i },
+        });
+      } else {
+        throw error;
+      }
+    }
+  }
+
+  return returnData;
 }
