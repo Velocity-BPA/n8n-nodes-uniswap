@@ -25,6 +25,13 @@ export class UniswapApi implements ICredentialType {
       description: 'The Uniswap API endpoint',
     },
     {
+      displayName: 'Base URL',
+      name: 'baseUrl',
+      type: 'string',
+      default: 'https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v3',
+      description: 'The GraphQL endpoint for Uniswap subgraph queries',
+    },
+    {
       displayName: 'API Key',
       name: 'apiKey',
       type: 'string',
@@ -87,6 +94,34 @@ export class UniswapApi implements ICredentialType {
           enableCaching: [true],
         },
       },
+    },
+    {
+      displayName: 'Custom Headers',
+      name: 'customHeaders',
+      type: 'fixedCollection',
+      placeholder: 'Add Header',
+      default: {},
+      options: [
+        {
+          name: 'header',
+          displayName: 'Header',
+          values: [
+            {
+              displayName: 'Name',
+              name: 'name',
+              type: 'string',
+              default: '',
+            },
+            {
+              displayName: 'Value',
+              name: 'value',
+              type: 'string',
+              default: '',
+            },
+          ],
+        },
+      ],
+      description: 'Optional custom headers for API requests',
     },
   ];
 
